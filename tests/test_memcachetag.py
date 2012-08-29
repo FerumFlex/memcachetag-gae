@@ -76,4 +76,11 @@ class MemcacheTagTest(unittest.TestCase):
     memcache.set('test', 'data')
     self.assertEqual(memcachetag.get_with_tags('test'), 'data')
 
+  def test_multi(self):
+    memcachetag.set_multi_with_tags({'test': 1, 'test2': 2}, ['temp'])
+    res = memcachetag.get_multi_with_tags(['test', 'test2'])
+    self.assertEqual(len(res.keys()), 2)
+    self.assertEqual(res.get('test'), 1)
+    self.assertEqual(res.get('test2'), 2)
+
 

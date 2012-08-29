@@ -33,24 +33,34 @@ def create_rpc(deadline=None, callback=None):
   return UserRPCTag('memcache', deadline, callback)
 
 class ClientTags(memcache.Client):
+
   def get_with_tags(self, key, key_prefix='', namespace=None, for_cas=False):
-    return self.get_multi_with_tags([key], key_prefix, namespace, for_cas).get(key)
+    rpc = self.get_async_with_tags(key, key_prefix, namespace, for_cas)
+    return rpc.get_result().get(key)
 
   def get_multi_with_tags(self, keys, key_prefix='', namespace=None, for_cas=False):
     rpc = self.get_multi_async_with_tags(keys, key_prefix, namespace, for_cas)
     return rpc.get_result()
 
+  def get_async_with_tags(self, key, key_prefix='', namespace=None, for_cas=False, rpc=None):
+    return self.get_multi_async_with_tags([key], key_prefix, namespace, for_cas, rpc)
+
   def get_multi_async_with_tags(self, keys, key_prefix='', namespace=None, for_cas=False, rpc=None):
     return self.get_multi_async(keys, key_prefix, namespace, for_cas, rpc)
+
+  def set_with_tags(self, key, value, tags, time=0, key_prefix='',
+                    min_compress_len=0, namespace=None):
+    rpc = self.set_async_with_tags(key, value, tags, time, key_prefix, min_compress_len, namespace)
+    return rpc.get_result().get(key)
 
   def set_multi_with_tags(self, mapping, tags, time=0, key_prefix='',
                                 min_compress_len=0, namespace=None, rpc=None):
     rpc = self.set_multi_async_with_tags(mapping, tags, time, key_prefix, min_compress_len, namespace)
     return rpc.get_result()
 
-  def set_with_tags(self, key, value, tags, time=0, key_prefix='',
-                    min_compress_len=0, namespace=None,):
-    return self.set_multi_with_tags({key:value}, tags, time, key_prefix, min_compress_len, namespace).get(key)
+  def set_async_with_tags(self, key, value, tags, time=0, key_prefix='',
+                    min_compress_len=0, namespace=None, rpc=None):
+    return self.set_multi_async_with_tags({key: value}, tags, time, key_prefix, min_compress_len, namespace, rpc)
 
   def set_multi_async_with_tags(self, mapping, tags, time=0,  key_prefix='',
                                 min_compress_len=0, namespace=None, rpc=None):
@@ -102,10 +112,12 @@ def setup_client(client_obj):
   var_dict['get_multi_async_with_tags'] = _CLIENTTAGS.get_multi_async_with_tags
   var_dict['get_multi_with_tags'] = _CLIENTTAGS.get_multi_with_tags
   var_dict['get_with_tags'] = _CLIENTTAGS.get_with_tags
+  var_dict['get_async_with_tags'] = _CLIENTTAGS.get_async_with_tags
 
   var_dict['set_multi_async_with_tags'] = _CLIENTTAGS.set_multi_async_with_tags
   var_dict['set_multi_with_tags'] = _CLIENTTAGS.set_multi_with_tags
   var_dict['set_with_tags'] = _CLIENTTAGS.set_with_tags
+  var_dict['set_async_with_tags'] = _CLIENTTAGS.set_async_with_tags
 
   var_dict['delete_tag'] = _CLIENTTAGS.delete_tag
   var_dict['get_tags_versions'] = _CLIENTTAGS.get_tags_versions
