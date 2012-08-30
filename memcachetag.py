@@ -124,6 +124,6 @@ def setup_client(client_obj):
 
 setup_client(ClientTags())
 
-__all__ = ['get_multi_async_with_tags', 'get_multi_with_tags', 'get_with_tags',
-           'set_multi_async_with_tags', 'set_multi_with_tags', 'set_with_tags',
+__all__ = ['get_multi_async_with_tags', 'get_multi_with_tags', 'get_with_tags', 'get_async_with_tags',
+           'set_multi_async_with_tags', 'set_multi_with_tags', 'set_with_tags', 'set_async_with_tags',
            'delete_tag', 'get_tags_versions', 'create_rpc']

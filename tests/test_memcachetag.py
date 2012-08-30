@@ -16,8 +16,9 @@ class MemcacheTagTest(unittest.TestCase):
     self.testbed.deactivate()
 
   def test_base(self):
-    memcachetag.set_with_tags('test', 1, ['temp'])
-    self.assertEqual(memcachetag.get_with_tags('test'), 1)
+    rnd = random.randint(1, 1000000)
+    self.assertEqual(memcachetag.set_with_tags('test', rnd, ['temp']), 1)
+    self.assertEqual(memcachetag.get_with_tags('test'), rnd)
 
   def test_random(self):
     for i in range(1000):
@@ -26,8 +27,9 @@ class MemcacheTagTest(unittest.TestCase):
       self.assertEqual(memcachetag.get_with_tags('test'), rnd)
 
   def test_delete_tag(self):
-    memcachetag.set_with_tags('test', 1, ['temp'])
-    self.assertEqual(memcachetag.get_with_tags('test'), 1)
+    rnd = random.randint(1, 1000000)
+    memcachetag.set_with_tags('test', rnd, ['temp'])
+    self.assertEqual(memcachetag.get_with_tags('test'), rnd)
 
     memcachetag.delete_tag('temp')
     self.assertEqual(memcachetag.get_with_tags('test'), None)
@@ -62,7 +64,8 @@ class MemcacheTagTest(unittest.TestCase):
 
     # delete random tag
     random_tag = "tag" + str(random.randint(1, 10))
-    memcachetag.delete_tag(random_tag)
+    version = memcachetag.delete_tag(random_tag)
+    self.assertEqual(version, memcachetag.get_tags_versions([random_tag]).get(random_tag))
 
     for key, d in data.items():
       value = d.get('value')
@@ -77,10 +80,26 @@ class MemcacheTagTest(unittest.TestCase):
     self.assertEqual(memcachetag.get_with_tags('test'), 'data')
 
   def test_multi(self):
-    memcachetag.set_multi_with_tags({'test': 1, 'test2': 2}, ['temp'])
-    res = memcachetag.get_multi_with_tags(['test', 'test2'])
+    rnd = random.randint(1, 1000000)
+    rnd2 = random.randint(1, 1000000)
+
+    res = memcachetag.set_multi_with_tags({'test': rnd, 'test2': rnd2}, ['temp'])
     self.assertEqual(len(res.keys()), 2)
     self.assertEqual(res.get('test'), 1)
-    self.assertEqual(res.get('test2'), 2)
+    self.assertEqual(res.get('test2'), 1)
+
+    res = memcachetag.get_multi_with_tags(['test', 'test2'])
+    self.assertEqual(len(res.keys()), 2)
+    self.assertEqual(res.get('test'), rnd)
+    self.assertEqual(res.get('test2'), rnd2)
+
+  def test_async(self):
+    rnd = random.randint(1, 1000000)
+
+    rpc = memcachetag.set_async_with_tags('test', rnd, ['temp'])
+    self.assertEqual(rpc.get_result().get('test'), 1)
+
+    rpc = memcachetag.get_async_with_tags('test')
+    self.assertEqual(rpc.get_result().get('test'), rnd)
 
 
